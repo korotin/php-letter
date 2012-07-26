@@ -7,7 +7,7 @@ class letter {
 	
 	protected $encoding = 'UTF-8';
 	protected $headers = array();
-	protected $to = null;
+	protected $to = array();
 	protected $subject = null;
 	protected $body = array('body' => '');
 
@@ -133,7 +133,7 @@ class letter {
 	 * @return letter
 	 */
 	public function to($email, $name = null) {
-		$this->to = $this->makeEmail(compact('email', 'name'));
+		$this->to[] = $this->makeEmail(compact('email', 'name'));
 		return $this;
 	}
 
@@ -195,12 +195,16 @@ class letter {
 		$boundary = $this->makeBoundary();
 		$this->header('Content-Type', "multipart/mixed; boundary={$boundary}");
 		
-		mail(
-			$this->to, 
+		list($subject, $body, $headers) = array(
 			$this->makeSubject($this->subject),
 			$this->makeBody($this->body, $boundary),
-			$this->makeHeaders($this->headers)
+			$this->makeHeaders($this->headers),
 		);
+		
+		foreach ($this->to as $recipient) {
+			mail($recipient, $subject, $body, $headers);
+		}
+		
 		return $this;
 	}
 
